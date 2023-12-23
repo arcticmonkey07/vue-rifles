@@ -1,11 +1,20 @@
 <script setup>
 import CartItem from './CartItem.vue';
+import InfoBlock from './InfoBlock.vue';
+
+defineProps({
+  cart: Array,
+  totalPrice: Number,
+  taxPrice: Number,
+  createOrder: Function,
+  cartButtonDisabled: Boolean
+});
 </script>
 
 <template>
   <div class="fixed z-10 top-0 h-full w-full bg-black opacity-70" @click="$emit('drawerHandler')" />
   <div
-    class="flex flex-col justify-between fixed h-full z-10 top-0 h-full right-0 w-96 bg-white px-10 py-7"
+    class="flex flex-col justify-between fixed h-full z-10 top-0 h-full right-0 w-96 bg-white px-10 py-7 overflow-y-scroll"
   >
     <h2 class="text-2xl font-bold mb-10 flex items-center gap-5">
       <svg
@@ -34,31 +43,40 @@ import CartItem from './CartItem.vue';
       </svg>
       Корзина
     </h2>
-    <div class="flex flex-col flex-1 justify-between">
-      <div class="flex flex-col gap-5">
-        <CartItem title="Мужские Кроссовки Nike Blazer Mid Suede" price="1000" img="" />
+    <div class="flex flex-col flex-1">
+      <div class="flex flex-col gap-5 mb-20" v-if="cart.length">
+        <CartItem
+          v-for="rifle in cart"
+          :key="rifle.id"
+          :title="rifle.title"
+          :price="rifle.price"
+          :img="rifle.imageUrl"
+          :onClickRemove="() => $emit('onClickRemove', rifle)"
+        />
       </div>
+      <InfoBlock v-else title="Корзина пустая" description="Добавьте хотя бы одну винтовку, чтобы сделать заказ" image-url="/package-icon.png" />
 
-      <div>
+      <div v-if="cart.length">
         <div class="flex flex-col gap-5">
           <div class="flex items-end gap-2">
             <span>Итого:</span>
             <div class="flex-1 border-b border-dashed" />
-            <span class="font-bold">1000 руб.</span>
+            <span class="font-bold">{{ totalPrice + taxPrice }} руб.</span>
           </div>
 
           <div class="flex items-end gap-2">
             <span>Налог 5%:</span>
             <div class="flex-1 border-b border-dashed" />
-            <span class="font-bold">50 руб.</span>
+            <span class="font-bold">{{ taxPrice }} руб.</span>
           </div>
         </div>
 
         <button
-          class="flex justify-center items-center gap-3 w-full py-3 mt-10 bg-lime-500 text-white rounded-xl transition active:bg-lime-700 hover:bg-lime-600"
+          class="flex justify-center items-center gap-3 w-full py-3 mt-10 bg-lime-500 text-white rounded-xl transition active:bg-lime-700 hover:bg-lime-600 disabled:bg-lime-200 disabled:text-slate-300"
+          @click="createOrder"
+          :disabled="cartButtonDisabled"
         >
           Оформить заказ
-          <img src="/arrow-next.svg" alt="Arrow" />
         </button>
       </div>
     </div>
