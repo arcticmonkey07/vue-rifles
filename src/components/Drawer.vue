@@ -9,6 +9,7 @@ defineProps({
   createOrder: Function,
   cartButtonDisabled: Boolean
 });
+defineEmits(['drawerHandler', 'onClickRemove']);
 </script>
 
 <template>
@@ -44,7 +45,7 @@ defineProps({
       Корзина
     </h2>
     <div class="flex flex-col flex-1">
-      <div class="flex flex-col gap-5 mb-20" v-if="cart.length">
+      <div v-auto-animate class="flex flex-col gap-5 mb-20" v-if="cart.length">
         <CartItem
           v-for="rifle in cart"
           :key="rifle.id"
@@ -54,7 +55,12 @@ defineProps({
           :onClickRemove="() => $emit('onClickRemove', rifle)"
         />
       </div>
-      <InfoBlock v-else title="Корзина пустая" description="Добавьте хотя бы одну винтовку, чтобы сделать заказ" image-url="/package-icon.png" />
+      <InfoBlock
+        v-else
+        title="Корзина пустая"
+        description="Добавьте хотя бы одну винтовку, чтобы сделать заказ"
+        image-url="/package-icon.png"
+      />
 
       <div v-if="cart.length">
         <div class="flex flex-col gap-5">
