@@ -1,5 +1,26 @@
+<script setup>
+import { ref, onMounted,  } from 'vue';
+import axios from 'axios';
+
+import CardList from '../components/CardList.vue';
+
+const favorites = ref([]);
+
+onMounted(async () => {
+  try {
+    const { data } = await axios.get('https://62690b738c0081b0.mokky.dev/favorites?_relations=rifles');
+    
+    favorites.value = data.map(item => item.rifle)
+  } catch (e) {
+    console.log(e);
+  }
+
+
+})
+</script>
+
 <template>
-  <h1>
-    Favorites
-  </h1>
+  <h2 class="text-3xl font-bold mb-8">Мои закладки</h2>
+
+  <CardList :items="favorites" is-favorites />
 </template>

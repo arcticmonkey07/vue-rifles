@@ -1,15 +1,42 @@
 <script setup>
+import { ref, inject, computed } from 'vue';
+import axios from 'axios';
+
 import CartItem from './CartItem.vue';
 import InfoBlock from './InfoBlock.vue';
 
-defineProps({
-  cart: Array,
+const props = defineProps({
   totalPrice: Number,
-  taxPrice: Number,
-  createOrder: Function,
-  cartButtonDisabled: Boolean
+  taxPrice: Number
 });
 defineEmits(['drawerHandler', 'onClickRemove']);
+
+const { cart } = inject('cart');
+
+const isCreating = ref(false);
+const orderId = ref(null);
+
+const createOrder = async () => {
+  try {
+    isCreating.value = true;
+
+    const { data } = await axios.post(`https://62690b738c0081b0.mokky.dev/orders`, {
+      items: cart.value,
+      totalPrice: props.totalPrice.value
+    });
+
+    cart.value = [];
+
+    orderId.value = data.id;
+  } catch (e) {
+    console.log(e);
+  } finally {
+    isCreating.value = false;
+  }
+};
+
+const buttonDisabled = computed(() => isCreating.value || cartIsEmpty.value);
+const cartIsEmpty = computed(() => cart.value.length === 0);
 </script>
 
 <template>
@@ -45,7 +72,7 @@ defineEmits(['drawerHandler', 'onClickRemove']);
       Корзина
     </h2>
     <div class="flex flex-col flex-1">
-      <div v-auto-animate class="flex flex-col gap-5 mb-20" v-if="cart.length">
+      <div v-auto-animate class="flex flex-col gap-5 mb-20" v-if="totalPrice">
         <CartItem
           v-for="rifle in cart"
           :key="rifle.id"
@@ -55,11 +82,19 @@ defineEmits(['drawerHandler', 'onClickRemove']);
           :onClickRemove="() => $emit('onClickRemove', rifle)"
         />
       </div>
+
       <InfoBlock
-        v-else
+        v-if="!totalPrice && !orderId"
         title="Корзина пустая"
         description="Добавьте хотя бы одну винтовку, чтобы сделать заказ"
         image-url="/package-icon.png"
+      />
+
+      <InfoBlock
+        v-if="orderId"
+        title="Заказ оформлен!"
+        :description="`Ваш заказ #${orderId} скоро будет передан курьерской доставке`"
+        image-url="/order-success-icon.png"
       />
 
       <div v-if="cart.length">
@@ -80,7 +115,7 @@ defineEmits(['drawerHandler', 'onClickRemove']);
         <button
           class="flex justify-center items-center gap-3 w-full py-3 mt-10 bg-lime-500 text-white rounded-xl transition active:bg-lime-700 hover:bg-lime-600 disabled:bg-lime-200 disabled:text-slate-300"
           @click="createOrder"
-          :disabled="cartButtonDisabled"
+          :disabled="buttonDisabled"
         >
           Оформить заказ
         </button>
